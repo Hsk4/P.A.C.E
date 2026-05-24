@@ -42,10 +42,10 @@ class _AlarmEditorSheetState extends State<AlarmEditorSheet> {
     super.initState();
     final alarm = widget.initialAlarm;
     _labelController = TextEditingController(text: alarm?.label ?? 'Alarm');
-    _ringtoneController = TextEditingController(text: alarm?.ringtoneValue ?? '');
+    _ringtoneController = TextEditingController(text: alarm?.ringtoneValue ?? 'alarm_tone');
     _timeOfDay = TimeOfDay(hour: alarm?.hour ?? 7, minute: alarm?.minute ?? 0);
     _repeatMode = alarm?.repeatMode ?? AlarmRepeatMode.once;
-    _ringtoneType = alarm?.ringtoneType ?? AlarmRingtoneType.system;
+    _ringtoneType = alarm?.ringtoneType ?? AlarmRingtoneType.rawResource;
     _enabled = alarm?.enabled ?? true;
     _vibrate = alarm?.vibrate ?? true;
     _selectedDays = <int>{
