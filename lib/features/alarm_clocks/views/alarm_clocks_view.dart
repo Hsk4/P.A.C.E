@@ -48,22 +48,30 @@ class _AlarmClocksViewState extends State<AlarmClocksView> {
   }
 
   Future<void> _saveAlarm(Alarm alarm, {Alarm? previousAlarm}) async {
-    if (previousAlarm != null) {
-      await NotificationService.instance.cancelAlarm(previousAlarm);
-      final previousIndex = _alarms.indexWhere((item) => item.id == previousAlarm.id);
-      if (previousIndex != -1) {
-        _alarms[previousIndex] = alarm;
+    try {
+      if (previousAlarm != null) {
+        await NotificationService.instance.cancelAlarm(previousAlarm);
+        final previousIndex = _alarms.indexWhere((item) => item.id == previousAlarm.id);
+        if (previousIndex != -1) {
+          _alarms[previousIndex] = alarm;
+        }
+      } else {
+        _alarms.add(alarm);
       }
-    } else {
-      _alarms.add(alarm);
-    }
 
-    await _persistAlarms();
-    if (alarm.enabled) {
-      await NotificationService.instance.scheduleAlarm(alarm);
-    }
-    if (mounted) {
-      setState(() {});
+      await _persistAlarms();
+      if (alarm.enabled) {
+        await NotificationService.instance.scheduleAlarm(alarm);
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not schedule alarm: $error')),
+        );
+      }
     }
   }
 
@@ -84,28 +92,44 @@ class _AlarmClocksViewState extends State<AlarmClocksView> {
   }
 
   Future<void> _deleteAlarm(Alarm alarm) async {
-    await NotificationService.instance.cancelAlarm(alarm);
-    _alarms.removeWhere((item) => item.id == alarm.id);
-    await _persistAlarms();
-    if (mounted) {
-      setState(() {});
+    try {
+      await NotificationService.instance.cancelAlarm(alarm);
+      _alarms.removeWhere((item) => item.id == alarm.id);
+      await _persistAlarms();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not delete alarm: $error')),
+        );
+      }
     }
   }
 
   Future<void> _toggleAlarm(Alarm alarm, bool enabled) async {
-    final updatedAlarm = alarm.copyWith(enabled: enabled);
-    await NotificationService.instance.cancelAlarm(alarm);
-    if (enabled) {
-      await NotificationService.instance.scheduleAlarm(updatedAlarm);
-    }
+    try {
+      final updatedAlarm = alarm.copyWith(enabled: enabled);
+      await NotificationService.instance.cancelAlarm(alarm);
+      if (enabled) {
+        await NotificationService.instance.scheduleAlarm(updatedAlarm);
+      }
 
-    final index = _alarms.indexWhere((item) => item.id == alarm.id);
-    if (index != -1) {
-      _alarms[index] = updatedAlarm;
-    }
-    await _persistAlarms();
-    if (mounted) {
-      setState(() {});
+      final index = _alarms.indexWhere((item) => item.id == alarm.id);
+      if (index != -1) {
+        _alarms[index] = updatedAlarm;
+      }
+      await _persistAlarms();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not update alarm: $error')),
+        );
+      }
     }
   }
 

@@ -193,7 +193,7 @@ class _AlarmEditorSheetState extends State<AlarmEditorSheet> {
               ),
               const SizedBox(height: 8),
                DropdownButtonFormField<AlarmRepeatMode>(
-                 initialValue: _repeatMode,
+                 value: _repeatMode,
                  decoration: const InputDecoration(
                    labelText: 'Repeat',
                   border: OutlineInputBorder(),
@@ -240,7 +240,7 @@ class _AlarmEditorSheetState extends State<AlarmEditorSheet> {
                 const SizedBox(height: 12),
               ],
                DropdownButtonFormField<AlarmRingtoneType>(
-                 initialValue: _ringtoneType,
+                 value: _ringtoneType,
                  decoration: const InputDecoration(
                    labelText: 'Ringtone source',
                    border: OutlineInputBorder(),

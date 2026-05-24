@@ -14,7 +14,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
-  static const String _channelId = 'alarm_notifications';
+  static const String _genericChannelId = 'app_notifications';
   static const String _channelName = 'Alarm notifications';
   static const String _channelDescription = 'Notification channel for scheduled alarms';
 
@@ -36,6 +36,7 @@ class NotificationService {
 
     final androidImplementation = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     await androidImplementation?.requestNotificationsPermission();
+	await androidImplementation?.requestExactAlarmsPermission();
 
     _initialized = true;
   }
@@ -158,9 +159,11 @@ class NotificationService {
   }
 
   NotificationDetails _notificationDetailsFor(Alarm alarm) {
+	final channelId = _channelIdFor(alarm);
+
 	return NotificationDetails(
 	  android: AndroidNotificationDetails(
-		_channelId,
+		channelId,
 		_channelName,
 		channelDescription: _channelDescription,
 		importance: Importance.max,
@@ -183,6 +186,15 @@ class NotificationService {
 		presentSound: true,
 	  ),
 	);
+  }
+
+  String _channelIdFor(Alarm alarm) {
+	final ringtoneKey = switch (alarm.ringtoneType) {
+	  AlarmRingtoneType.system => 'system',
+	  AlarmRingtoneType.rawResource => 'raw_${alarm.ringtoneValue.trim().toLowerCase()}',
+	  AlarmRingtoneType.uri => 'uri_${alarm.ringtoneValue.trim().hashCode.abs()}',
+	};
+	return 'alarm_notifications_$ringtoneKey';
   }
 
   AndroidNotificationSound? _androidNotificationSound(Alarm alarm) {
@@ -218,7 +230,7 @@ class NotificationService {
   NotificationDetails _genericNotificationDetails() {
 	return const NotificationDetails(
 	  android: AndroidNotificationDetails(
-		_channelId,
+		_genericChannelId,
 		_channelName,
 		channelDescription: _channelDescription,
 		importance: Importance.max,
