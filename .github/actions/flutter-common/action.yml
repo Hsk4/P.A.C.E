@@ -1,0 +1,74 @@
+name: Flutter Common CI
+description: Shared Flutter setup, analysis, testing, and Android APK build steps.
+
+inputs:
+  build-command:
+    description: Flutter build command to run.
+    required: true
+  artifact-name:
+    description: Name of the uploaded artifact.
+    required: true
+  artifact-path:
+    description: File glob for build artifacts to copy and upload.
+    required: false
+    default: build/app/outputs/flutter-apk/*.apk
+  flutter-channel:
+    description: Flutter channel to install.
+    required: false
+    default: stable
+  java-version:
+    description: Java version for Android builds.
+    required: false
+    default: '17'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Java
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: ${{ inputs.java-version }}
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: ${{ inputs.flutter-channel }}
+        cache: true
+
+    - name: Fetch dependencies
+      shell: bash
+      run: flutter pub get
+
+    - name: Analyze
+      shell: bash
+      run: flutter analyze
+
+    - name: Test
+      shell: bash
+      run: flutter test --no-pub
+
+    - name: Decode keystore if provided
+      shell: bash
+      run: |
+        if [ -n "${KEYSTORE_BASE64:-}" ]; then
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+        fi
+
+    - name: Build Android APKs
+      shell: bash
+      run: ${{ inputs.build-command }}
+
+    - name: Prepare artifacts
+      shell: bash
+      run: |
+        rm -rf artifacts
+        mkdir -p artifacts
+        cp ${{ inputs.artifact-path }} artifacts/
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: artifacts/*
+
