@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "128351405706",
+    "project_id": "pace-841e7",
+    "storage_bucket": "pace-841e7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128351405706:android:377776827f54c717ad0f73",
+        "android_client_info": {
+          "package_name": "com.example.flutter1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLDebFKTjPfY5igPE9rKBlF7ezsUpuxt0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

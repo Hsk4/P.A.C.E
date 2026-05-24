@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+
+import '../data/alarm_store.dart';
 import '../models/alarm_model.dart';
+import '../utils/alarm_schedule.dart';
+import '../../../services/notification_service.dart';
+import '../widgets/alarm_editor_sheet.dart';
 
 class AlarmClocksView extends StatefulWidget {
   const AlarmClocksView({super.key});
@@ -9,39 +14,108 @@ class AlarmClocksView extends StatefulWidget {
 }
 
 class _AlarmClocksViewState extends State<AlarmClocksView> {
-  List<Alarm> alarms = [];
+  final AlarmStore _store = AlarmStore();
+  List<Alarm> _alarms = <Alarm>[];
+  bool _loading = true;
 
-  void _addAlarm() {
+  @override
+  void initState() {
+    super.initState();
+    _loadAlarms();
+  }
+
+  Future<void> _loadAlarms() async {
+    final loadedAlarms = await _store.loadAlarms();
+    await NotificationService.instance.refreshAlarms(loadedAlarms);
+    if (!mounted) {
+      return;
+    }
     setState(() {
-      alarms.add(Alarm(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        time: '09:00',
-        label: 'New Alarm',
-        enabled: true,
-      ));
+      _alarms = loadedAlarms..sort(_compareAlarms);
+      _loading = false;
     });
   }
 
-  void _deleteAlarm(String id) {
-    setState(() {
-      alarms.removeWhere((a) => a.id == id);
-    });
+  int _compareAlarms(Alarm left, Alarm right) {
+    final leftScore = left.hour * 60 + left.minute;
+    final rightScore = right.hour * 60 + right.minute;
+    return leftScore.compareTo(rightScore);
   }
 
-  void _toggleAlarm(String id) {
-    setState(() {
-      final idx = alarms.indexWhere((a) => a.id == id);
-      if (idx != -1) {
-        alarms[idx] = alarms[idx].copyWith(enabled: !alarms[idx].enabled);
+  Future<void> _persistAlarms() async {
+    _alarms.sort(_compareAlarms);
+    await _store.saveAlarms(_alarms);
+  }
+
+  Future<void> _saveAlarm(Alarm alarm, {Alarm? previousAlarm}) async {
+    if (previousAlarm != null) {
+      await NotificationService.instance.cancelAlarm(previousAlarm);
+      final previousIndex = _alarms.indexWhere((item) => item.id == previousAlarm.id);
+      if (previousIndex != -1) {
+        _alarms[previousIndex] = alarm;
       }
-    });
+    } else {
+      _alarms.add(alarm);
+    }
+
+    await _persistAlarms();
+    if (alarm.enabled) {
+      await NotificationService.instance.scheduleAlarm(alarm);
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _editAlarm(Alarm alarm) async {
+    final updatedAlarm = await showAlarmEditorSheet(context, initialAlarm: alarm);
+    if (!mounted || updatedAlarm == null) {
+      return;
+    }
+    await _saveAlarm(updatedAlarm, previousAlarm: alarm);
+  }
+
+  Future<void> _addAlarm() async {
+    final newAlarm = await showAlarmEditorSheet(context);
+    if (!mounted || newAlarm == null) {
+      return;
+    }
+    await _saveAlarm(newAlarm);
+  }
+
+  Future<void> _deleteAlarm(Alarm alarm) async {
+    await NotificationService.instance.cancelAlarm(alarm);
+    _alarms.removeWhere((item) => item.id == alarm.id);
+    await _persistAlarms();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _toggleAlarm(Alarm alarm, bool enabled) async {
+    final updatedAlarm = alarm.copyWith(enabled: enabled);
+    await NotificationService.instance.cancelAlarm(alarm);
+    if (enabled) {
+      await NotificationService.instance.scheduleAlarm(updatedAlarm);
+    }
+
+    final index = _alarms.indexWhere((item) => item.id == alarm.id);
+    if (index != -1) {
+      _alarms[index] = updatedAlarm;
+    }
+    await _persistAlarms();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Alarm Clocks')),
-      body: alarms.isEmpty
+      appBar: AppBar(title: const Text('Alarms')),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _alarms.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -56,35 +130,45 @@ class _AlarmClocksViewState extends State<AlarmClocksView> {
               ),
             )
           : ListView.builder(
-              itemCount: alarms.length,
+              itemCount: _alarms.length,
               itemBuilder: (ctx, idx) {
-                final alarm = alarms[idx];
+                final alarm = _alarms[idx];
                 return Card(
                   margin: const EdgeInsets.all(12),
                   child: ListTile(
                     leading: Icon(
-                      alarm.enabled ? Icons.access_alarm : Icons.alarm_off,
-                      color: alarm.enabled
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey,
+                      alarm.enabled ? Icons.alarm : Icons.alarm_off,
+                      color: alarm.enabled ? Theme.of(context).colorScheme.primary : Colors.grey,
                     ),
                     title: Text(alarm.label),
-                    subtitle: Text(alarm.time),
+                    subtitle: Text(
+                      [
+                        alarm.timeLabel,
+                        repeatModeLabel(alarm),
+                        ringtoneLabel(alarm),
+                      ].join('\n'),
+                    ),
+                    isThreeLine: true,
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(alarm.enabled
-                              ? Icons.toggle_on
-                              : Icons.toggle_off),
-                          onPressed: () => _toggleAlarm(alarm.id),
+                      children: <Widget>[
+                        Switch(
+                          value: alarm.enabled,
+                          onChanged: (value) => _toggleAlarm(alarm, value),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteAlarm(alarm.id),
+                          tooltip: 'Edit alarm',
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () => _editAlarm(alarm),
+                        ),
+                        IconButton(
+                          tooltip: 'Delete alarm',
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          onPressed: () => _deleteAlarm(alarm),
                         ),
                       ],
                     ),
+                    onTap: () => _editAlarm(alarm),
                   ),
                 );
               },

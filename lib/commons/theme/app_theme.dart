@@ -1,33 +1,31 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primaryBlack = Color(0xFF1A1A1A);
-  static const Color primaryOrange = Color(0xFFFF6B35);
-  static const Color darkOrange = Color(0xFFE85C2F);
-  static const Color lightOrange = Color(0xFFFF8A50);
-  static const Color accentOrange = Color(0xFFFFA366);
-  static const Color lightGrey = Color(0xFFF5F5F5);
-  static const Color darkGrey = Color(0xFF3A3A3A);
-  static const Color mediumGrey = Color(0xFF555555);
+  static const Color appBackground = Color(0xFF0A0D14);
+  static const Color primaryOrange = Color(0xFFFF7A00);
+  static const Color primaryCrimson = Color(0xFFDC143C);
+  static const Color cardBackground = Color(0xFF141A24);
+  static const Color borderColor = Color(0xFF2A3140);
+  static const Color textPrimary = Colors.white;
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: ColorScheme.light(
+      brightness: Brightness.dark,
+      colorScheme: const ColorScheme.dark(
         primary: primaryOrange,
         onPrimary: Colors.white,
-        secondary: primaryBlack,
+        secondary: primaryCrimson,
         onSecondary: Colors.white,
-        surface: lightGrey,
-        onSurface: primaryBlack,
+        surface: cardBackground,
+        onSurface: textPrimary,
         error: Colors.red,
         onError: Colors.white,
       ),
-      scaffoldBackgroundColor: lightGrey,
+      scaffoldBackgroundColor: appBackground,
       appBarTheme: const AppBarTheme(
-        backgroundColor: primaryBlack,
-        foregroundColor: Colors.white,
+        backgroundColor: appBackground,
+        foregroundColor: textPrimary,
         elevation: 0,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -56,8 +54,8 @@ class AppTheme {
         backgroundColor: primaryOrange,
         foregroundColor: Colors.white,
       ),
-      cardTheme: CardTheme(
-        color: Colors.white,
+      cardTheme: CardThemeData(
+        color: cardBackground,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -66,6 +64,12 @@ class AppTheme {
         prefixIconColor: primaryOrange,
         suffixIconColor: primaryOrange,
       ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: appBackground,
+        selectedItemColor: primaryOrange,
+        unselectedItemColor: primaryCrimson,
+        type: BottomNavigationBarType.fixed,
+      ),
     );
   }
 
@@ -73,26 +77,26 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: primaryOrange,
-        onPrimary: primaryBlack,
-        secondary: lightGrey,
-        onSecondary: primaryBlack,
-        surface: darkGrey,
-        onSurface: lightGrey,
+        onPrimary: Colors.white,
+        secondary: primaryCrimson,
+        onSecondary: Colors.white,
+        surface: cardBackground,
+        onSurface: textPrimary,
         error: Colors.red,
-        onError: primaryBlack,
+        onError: Colors.white,
       ),
-      scaffoldBackgroundColor: primaryBlack,
+      scaffoldBackgroundColor: appBackground,
       appBarTheme: const AppBarTheme(
-        backgroundColor: darkGrey,
-        foregroundColor: Colors.white,
+        backgroundColor: appBackground,
+        foregroundColor: textPrimary,
         elevation: 0,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryOrange,
-          foregroundColor: primaryBlack,
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -113,12 +117,19 @@ class AppTheme {
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: primaryOrange,
-        foregroundColor: primaryBlack,
+        foregroundColor: Colors.white,
       ),
-      cardTheme: CardTheme(
-        color: darkGrey,
+      cardTheme: CardThemeData(
+        color: cardBackground,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      dividerColor: borderColor,
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: appBackground,
+        selectedItemColor: primaryOrange,
+        unselectedItemColor: primaryCrimson,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }

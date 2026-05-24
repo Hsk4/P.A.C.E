@@ -1,16 +1,27 @@
 # flutter1
 
-A new Flutter project.
+P.A.C.E is a Flutter app with Pomodoro and dynamic alarm features.
 
-## Getting Started
+## Alarm feature
 
-This project is a starting point for a Flutter application.
+- Add and edit alarms
+- Pick the time with either clock or digital input
+- Repeat once, daily, weekdays, or custom days
+- Choose a ringtone source:
+  - system default
+  - Android raw resource name in `android/app/src/main/res/raw`
+  - custom URI ringtone source
+- Notifications are initialized through Firebase and `flutter_local_notifications`
 
-A few resources to get you started if this is your first Flutter project:
+## Android notification setup
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+The Android manifest includes notification and exact-alarm permissions plus boot receivers so scheduled alarms can survive device restarts.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Getting started
+
+Run:
+
+```powershell
+flutter pub get
+flutter test
+```
