@@ -3,13 +3,9 @@ name: 🛠 Android CI / Build & Release APK
 on:
   push:
     branches: [ main, master, upgrade ]
-        name: Disabled main workflow
 
-        on:
-          workflow_dispatch:
-
-        jobs:
-          noop:
-            runs-on: ubuntu-latest
-            steps:
-              - run: echo "This workflow is disabled. Use .github/workflows/build.yml for build & release."
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This workflow is disabled. Use .github/workflows/build.yml for build & release."

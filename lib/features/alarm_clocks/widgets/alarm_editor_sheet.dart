@@ -191,13 +191,13 @@ class _AlarmEditorSheetState extends State<AlarmEditorSheet> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-               DropdownButtonFormField<AlarmRepeatMode>(
-                 value: _repeatMode,
-                 decoration: const InputDecoration(
-                   labelText: 'Repeat',
-                  border: OutlineInputBorder(),
-                ),
+               const SizedBox(height: 8),
+                DropdownButtonFormField<AlarmRepeatMode>(
+                  initialValue: _repeatMode,
+                  decoration: const InputDecoration(
+                    labelText: 'Repeat',
+                   border: OutlineInputBorder(),
+                 ),
                 items: AlarmRepeatMode.values
                     .map(
                       (mode) => DropdownMenuItem<AlarmRepeatMode>(
@@ -238,13 +238,13 @@ class _AlarmEditorSheetState extends State<AlarmEditorSheet> {
                   children: kWeekdays.map(_buildDayChip).toList(growable: false),
                 ),
                 const SizedBox(height: 12),
-              ],
-               DropdownButtonFormField<AlarmRingtoneType>(
-                 value: _ringtoneType,
-                 decoration: const InputDecoration(
-                   labelText: 'Ringtone source',
-                   border: OutlineInputBorder(),
-                 ),
+               ],
+                DropdownButtonFormField<AlarmRingtoneType>(
+                  initialValue: _ringtoneType,
+                  decoration: const InputDecoration(
+                    labelText: 'Ringtone source',
+                    border: OutlineInputBorder(),
+                  ),
                 items: AlarmRingtoneType.values
                     .map(
                       (type) => DropdownMenuItem<AlarmRingtoneType>(
