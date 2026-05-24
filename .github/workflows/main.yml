@@ -26,7 +26,19 @@ permissions:
       - name: Set tag name
         id: set_tag
         run: |
-          TAG="release-${{ steps.sha.outputs.sha }}"
+          REF="${GITHUB_REF}"
+          SHORT=${{ steps.sha.outputs.sha }}
+          if [[ "$REF" == refs/tags/V* ]]; then
+            SEMVER=${REF#refs/tags/}
+          else
+            if [[ -f pubspec.yaml ]]; then
+              SEMVER=$(grep '^version:' pubspec.yaml | head -n1 | sed 's/version:[[:space:]]*//; s/+.*//; s/ //g')
+              SEMVER=${SEMVER:-0.0.0}
+            else
+              SEMVER=0.0.0
+            fi
+          fi
+          TAG="${SEMVER}-${SHORT}"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Create and push tag
