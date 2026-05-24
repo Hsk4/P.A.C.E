@@ -11,8 +11,11 @@ on:
         required: false
         default: 'V0.0.2'
 
+permissions:
+  contents: write
+
 jobs:
-  build:
+  build_and_release:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,9 +25,23 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.inputs.ref || github.ref }}
 
-      - name: Shared Flutter CI
+      - name: Build Release APKs (shared CI)
         uses: ./.github/actions/flutter-common
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         with:
-          build-command: flutter build apk --debug
-          artifact-name: app-debug-apk
+          build-command: flutter build apk --release --split-per-abi
+          artifact-name: app-release-apks
+
+      - name: Create or update Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag:       ${{ github.ref_name }}
+          name:      Release ${{ github.ref_name }}
+          artifacts: artifacts/*.apk
+          token:     ${{ secrets.GITHUB_TOKEN }}
+          replacesArtifacts: true
 

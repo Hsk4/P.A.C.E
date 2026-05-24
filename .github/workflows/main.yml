@@ -3,101 +3,13 @@ name: 🛠 Android CI / Build & Release APK
 on:
   push:
     branches: [ main, master, upgrade ]
-    tags:    [ 'V*.*.*' ]
-  pull_request:
-    branches: [ main, master, upgrade ]
+        name: Disabled main workflow
 
-permissions:
-  prepare_tag:
-    name: Prepare unique release tag
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.set_tag.outputs.tag }}
-    steps:
-      - name: 📂 Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+        on:
+          workflow_dispatch:
 
-      - name: Get short SHA
-        id: sha
-        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Set tag name
-        id: set_tag
-        run: |
-          REF="${GITHUB_REF}"
-          SHORT=${{ steps.sha.outputs.sha }}
-          if [[ "$REF" == refs/tags/V* ]]; then
-            SEMVER=${REF#refs/tags/}
-          else
-            if [[ -f pubspec.yaml ]]; then
-              SEMVER=$(grep '^version:' pubspec.yaml | head -n1 | sed 's/version:[[:space:]]*//; s/+.*//; s/ //g')
-              SEMVER=${SEMVER:-0.0.0}
-            else
-              SEMVER=0.0.0
-            fi
-          fi
-          TAG="${SEMVER}-${SHORT}"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-      - name: Create and push tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG=${{ steps.set_tag.outputs.tag }}
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-          git tag -a "$TAG" -m "Automated tag $TAG"
-          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}" refs/tags/$TAG --force
-
-  build_and_release:
-    name: Build APK and create Release
-    runs-on: ubuntu-latest
-    needs: prepare_tag
-
-    steps:
-      - name: 📂 Checkout code (tag)
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.prepare_tag.outputs.tag }}
-
-      - name: Shared Flutter CI
-        uses: ./.github/actions/flutter-common
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        with:
-          build-command: flutter build apk --release --split-per-abi
-          artifact-name: app-release-apks
-
-      - name: Generate release notes
-        id: release_notes
-        run: |
-          BODY=$(git log --pretty=format:'- %s (%h)' -n 20)
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          echo "$BODY" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: 🏷️ Create or update Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag:              ${{ needs.prepare_tag.outputs.tag }}
-          name:             Release ${{ needs.prepare_tag.outputs.tag }}
-          artifacts:        artifacts/*.apk
-          token:            ${{ secrets.GITHUB_TOKEN }}
-          replacesArtifacts: true
-          generateReleaseNotes: true
-          body: ${{ steps.release_notes.outputs.body }}
-      - name: 🏷️ Create or update Release
-        if: startsWith(github.ref, 'refs/tags/V')
-        uses: ncipollo/release-action@v1
-        with:
-          tag:              ${{ github.ref_name }}
-          name:             Release ${{ github.ref_name }}
-          artifacts:        artifacts/*.apk
-          token:            ${{ secrets.GITHUB_TOKEN }}
-          replacesArtifacts: true
+        jobs:
+          noop:
+            runs-on: ubuntu-latest
+            steps:
+              - run: echo "This workflow is disabled. Use .github/workflows/build.yml for build & release."
